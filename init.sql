@@ -21,8 +21,8 @@ CREATE TABLE events (
 
 CREATE TABLE registrations (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    event_id INT REFERENCES events(id),
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    event_id INT REFERENCES events(id) ON DELETE CASCADE,
     status VARCHAR(20),
     timestamp TIMESTAMP DEFAULT NOW()
 );
