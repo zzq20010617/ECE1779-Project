@@ -3,15 +3,112 @@ import pool from "../db.js";
 
 const router = express.Router();
 
+// GET /registrations/count - Retrieve total registration count
+router.get("/count", async (req, res) => {
+	try {
+		const result = await pool.query("SELECT COUNT(*) FROM registrations");
+		res.status(200).json({ count: parseInt(result.rows[0].count, 10) });
+	} catch (err) {
+		console.error("Error counting registrations:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// POST /registrations - Create a new registration
+router.post("/", async (req, res) => {
+	const { user_id, event_id, status } = req.body;
+	try {
+		if (!user_id || !event_id || !status) {
+			return res.status(400).json({ error: "Missing required fields" });
+		}
+
+		const result = await pool.query(
+			`INSERT INTO registrations (user_id, event_id, status)
+       		 VALUES ($1, $2, $3)
+       		 RETURNING id, user_id, event_id, status, timestamp`,
+			[user_id, event_id, status]
+		);
+		res.status(201).json(result.rows[0]);
+	} catch (err) {
+		console.error("Error creating registration:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// GET /registrations/:id - Retrieve a registration by ID
+router.get("/:id", async (req, res) => {
+	const id = parseInt(req.params.id, 10);
+	try {
+		const result = await pool.query("SELECT * FROM registrations WHERE id = $1", [id]);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "Registration not found" });
+		}
+		res.status(200).json(result.rows[0]);
+	} catch (err) {
+		console.error("Error fetching registration:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// PUT /registrations/:id - Update a registration by ID (partial update)
+router.put("/:id", async (req, res) => {
+	const id = parseInt(req.params.id, 10);
+	const fields = ["user_id", "event_id", "status"];
+	const updates = [];
+	const values = [];
+
+	fields.forEach((field) => {
+		if (req.body[field] !== undefined) {
+			updates.push(`${field} = $${values.length + 1}`);
+			values.push(req.body[field]);
+		}
+	});
+
+	if (updates.length === 0) {
+		return res.status(400).json({ error: "No fields to update" });
+	}
+
+	values.push(id);
+
+	try {
+		const result = await pool.query(
+			`UPDATE registrations SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
+			values
+		);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "Registration not found" });
+		}
+		res.status(200).json(result.rows[0]);
+	} catch (err) {
+		console.error("Error updating registration:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// DELETE /registrations/:id - Delete a registration by ID
+router.delete("/:id", async (req, res) => {
+	const id = parseInt(req.params.id, 10);
+	try {
+		const result = await pool.query("DELETE FROM registrations WHERE id = $1 RETURNING id", [id]);
+		if (result.rowCount === 0) {
+			return res.status(404).json({ error: "Registration not found" });
+		}
+		res.status(200).json({ message: "Registration deleted", id: result.rows[0].id });
+	} catch (err) {
+		console.error("Error deleting registration:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
 // GET /registrations - Retrieve all registrations
 router.get("/", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM registrations ORDER BY id ASC");
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Error fetching registrations:", err);
-        res.status(500).json({ error: "Server error" });
-    }
+	try {
+		const result = await pool.query("SELECT * FROM registrations ORDER BY id ASC");
+		res.json(result.rows);
+	} catch (err) {
+		console.error("Error fetching registrations:", err);
+		res.status(500).json({ error: "Server error" });
+	}
 });
 
 export default router;
