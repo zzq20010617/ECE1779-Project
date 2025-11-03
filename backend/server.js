@@ -1,6 +1,7 @@
 import express from "express";
 import eventsRouter from "./routes/event.js";
 import usersRouter from "./routes/user.js";
+import registrationRouter from "./routes/registration.js"
 
 import cors from "cors";
 
@@ -14,6 +15,7 @@ app.use(express.json());
 // Apply routers
 app.use("/events", eventsRouter);
 app.use("/users", usersRouter);
+app.use("/registrations", registrationRouter);
 
 // Default route
 app.get("/", (req, res) => {
