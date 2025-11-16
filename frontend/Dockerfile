@@ -1,17 +1,25 @@
-FROM node:22 AS build
+# Stage 1: Build React app
+FROM node:18 AS build
 
 WORKDIR /app
-COPY package*.json ./
+
+# Copy package list first (better for caching)
+COPY package.json package-lock.json ./
 RUN npm install
 
-COPY . .
+# Copy all source code
+COPY . ./
+
+# Build the React app
 RUN npm run build
 
-FROM nginx:stable-alpine AS production
-COPY --from=build /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Stage 2: Serve with Nginx
+FROM nginx:stable-alpine
 
-# Expose port 80
+# Copy build output to Nginx web root
+COPY --from=build /app/build /usr/share/nginx/html
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
+

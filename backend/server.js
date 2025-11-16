@@ -1,25 +1,32 @@
 import express from "express";
 import eventsRouter from "./routes/event.js";
 import usersRouter from "./routes/user.js";
-import registrationRouter from "./routes/registration.js"
-
+import registrationRouter from "./routes/registration.js";
 import cors from "cors";
 
 const app = express();
-const port = process.env.BE_PORT;
+const port = process.env.BE_PORT || 4000;  
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Apply routers
-app.use("/events", eventsRouter);
-app.use("/users", usersRouter);
-app.use("/registrations", registrationRouter);
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "School Event Management API is running",
+  });
+});
 
-// Default route
+app.use("/api/events", eventsRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/registrations", registrationRouter);
+
+
 app.get("/", (req, res) => {
   res.send("School Event Management API is running");
+});
+app.get("/api/health", (req, res) => {
+  res.send("OK from backend");
 });
 
 // Start the server

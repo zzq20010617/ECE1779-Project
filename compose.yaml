@@ -4,7 +4,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
@@ -21,7 +21,7 @@ services:
   api:
     build: .
     ports:
-      - "${BE_PORT}:3000"
+      - "${BE_PORT}:${BE_PORT}"  
     env_file:
       - .env
     environment:
