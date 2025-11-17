@@ -1,20 +1,19 @@
-# Stage 1: Build React app
-FROM node:18 AS build
+ # Use official Node.js image
+FROM node:22
 
+# Set working directory
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Copy dependency definitions
+COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-COPY . ./
-RUN npm run build
+# Copy application code
+COPY . .
 
-# Stage 2: Serve using Nginx
-FROM nginx:stable-alpine
+# Expose port
+EXPOSE 3000
 
-COPY --from=build /app/build /usr/share/nginx/html
-
-# default nginx config
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "start"]

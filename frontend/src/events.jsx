@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  Box,
+  Button,
   List,
   ListItem,
   ListItemButton,
@@ -9,13 +12,16 @@ import {
   Container,
 } from "@mui/material";
 
+console.log(localStorage.getItem("currentUser"))
+const backend = `http://localhost:${process.env.REACT_APP_BE_PORT}`
 function EventsPage() {
   const [events, setEvents] = useState([]);
+  const navigate = useNavigate();
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    const backend =  "http://localhost:3000/events"
-    fetch(backend)
+    const eventapi = backend+"/api/events"
+    fetch(eventapi)
       .then(res => res.json())
       .then(data => {
         setEvents(data);
@@ -28,14 +34,32 @@ function EventsPage() {
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        All Events
-      </Typography>
+      {/* Banner / Header */}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        mb={3}
+      >
+        <Typography variant="h4" fontWeight="bold">
+          All Events
+        </Typography>
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/registrations")}
+        >
+          My Events
+        </Button>
+      </Box>
+
+      {/* List of events */}
       <List>
         {events.map((event, index) => (
           <>
             <ListItem disablePadding key={event.id}>
-              <ListItemButton>
+              <ListItemButton onClick={() => navigate(`/events/${event.id}`)}>
                 <ListItemText
                   primary={event.title}
                   secondary={new Date(event.date).toLocaleDateString()}
