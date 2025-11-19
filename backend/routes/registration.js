@@ -3,6 +3,9 @@ import pool from "../db.js";
 
 const router = express.Router();
 
+// Allowed status values
+const VALID_STATUSES = ["pending", "confirmed", "cancelled"];
+
 // GET /registrations/count - Retrieve total registration count
 router.get("/count", async (req, res) => {
 	try {
@@ -17,17 +20,41 @@ router.get("/count", async (req, res) => {
 // POST /registrations - Create a new registration
 router.post("/", async (req, res) => {
 	const { user_id, event_id, status } = req.body;
+
 	try {
 		if (!user_id || !event_id || !status) {
 			return res.status(400).json({ error: "Missing required fields" });
 		}
 
+		if (!VALID_STATUSES.includes(status)) {
+			return res.status(400).json({ error: "Invalid status value" });
+		}
+
+		const userCheck = await pool.query("SELECT id FROM users WHERE id = $1", [user_id]);
+		if (userCheck.rows.length === 0) {
+			return res.status(400).json({ error: "Invalid user_id" });
+		}
+
+		const eventCheck = await pool.query("SELECT id FROM events WHERE id = $1", [event_id]);
+		if (eventCheck.rows.length === 0) {
+			return res.status(400).json({ error: "Invalid event_id" });
+		}
+
+		const existing = await pool.query(
+			"SELECT id FROM registrations WHERE user_id = $1 AND event_id = $2",
+			[user_id, event_id]
+		);
+		if (existing.rows.length > 0) {
+			return res.status(400).json({ error: "User already registered for this event" });
+		}
+
 		const result = await pool.query(
 			`INSERT INTO registrations (user_id, event_id, status)
-       		 VALUES ($1, $2, $3)
-       		 RETURNING id, user_id, event_id, status, timestamp`,
+       VALUES ($1, $2, $3)
+       RETURNING id, user_id, event_id, status, timestamp`,
 			[user_id, event_id, status]
 		);
+
 		res.status(201).json(result.rows[0]);
 	} catch (err) {
 		console.error("Error creating registration:", err);
@@ -39,13 +66,52 @@ router.post("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
 	const id = parseInt(req.params.id, 10);
 	try {
-		const result = await pool.query("SELECT * FROM registrations WHERE id = $1", [id]);
+		const result = await pool.query(
+			"SELECT id, user_id, event_id, status, timestamp FROM registrations WHERE id = $1",
+			[id]
+		);
 		if (result.rows.length === 0) {
 			return res.status(404).json({ error: "Registration not found" });
 		}
 		res.status(200).json(result.rows[0]);
 	} catch (err) {
 		console.error("Error fetching registration:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// ✅ NEW: GET /registrations/user/:userId - Retrieve all registrations for a given user
+router.get("/user/:userId", async (req, res) => {
+	const userId = parseInt(req.params.userId, 10);
+	try {
+		const result = await pool.query(
+			"SELECT id, user_id, event_id, status, timestamp FROM registrations WHERE user_id = $1 ORDER BY timestamp DESC",
+			[userId]
+		);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "No registrations found for this user" });
+		}
+		res.status(200).json(result.rows);
+	} catch (err) {
+		console.error("Error fetching user registrations:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// ✅ NEW: GET /registrations/event/:eventId - Retrieve all registrations for a given event
+router.get("/event/:eventId", async (req, res) => {
+	const eventId = parseInt(req.params.eventId, 10);
+	try {
+		const result = await pool.query(
+			"SELECT id, user_id, event_id, status, timestamp FROM registrations WHERE event_id = $1 ORDER BY timestamp DESC",
+			[eventId]
+		);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "No registrations found for this event" });
+		}
+		res.status(200).json(result.rows);
+	} catch (err) {
+		console.error("Error fetching event registrations:", err);
 		res.status(500).json({ error: "Server error" });
 	}
 });
@@ -59,6 +125,9 @@ router.put("/:id", async (req, res) => {
 
 	fields.forEach((field) => {
 		if (req.body[field] !== undefined) {
+			if (field === "status" && !VALID_STATUSES.includes(req.body[field])) {
+				return res.status(400).json({ error: "Invalid status value" });
+			}
 			updates.push(`${field} = $${values.length + 1}`);
 			values.push(req.body[field]);
 		}
@@ -72,7 +141,8 @@ router.put("/:id", async (req, res) => {
 
 	try {
 		const result = await pool.query(
-			`UPDATE registrations SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
+			`UPDATE registrations SET ${updates.join(", ")} WHERE id = $${values.length}
+       RETURNING id, user_id, event_id, status, timestamp`,
 			values
 		);
 		if (result.rows.length === 0) {
@@ -103,7 +173,9 @@ router.delete("/:id", async (req, res) => {
 // GET /registrations - Retrieve all registrations
 router.get("/", async (req, res) => {
 	try {
-		const result = await pool.query("SELECT * FROM registrations ORDER BY id ASC");
+		const result = await pool.query(
+			"SELECT id, user_id, event_id, status, timestamp FROM registrations ORDER BY id ASC"
+		);
 		res.json(result.rows);
 	} catch (err) {
 		console.error("Error fetching registrations:", err);
