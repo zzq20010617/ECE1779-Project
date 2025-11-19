@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 
 console.log(localStorage.getItem("currentUser"))
-const backend = `http://localhost:${process.env.REACT_APP_BE_PORT}`
+const backend = process.env.REACT_APP_BE_URL
 function EventsPage() {
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();

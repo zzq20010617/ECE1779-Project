@@ -17,7 +17,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const backendBase = `http://localhost:${process.env.REACT_APP_BE_PORT}/api/users/login`;
+  const backendBase = `${process.env.REACT_APP_BE_URL}/api/users/login`;
 
   const handleLogin = async (e) => {
     e.preventDefault();

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Container, Typography } from "@mui/material";
 
 
-const backend = `http://localhost:${process.env.REACT_APP_BE_PORT}/api/events/`;
+const backend = `${process.env.REACT_APP_BE_URL}/api/events/`;
 function EventDetailsPage() {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
