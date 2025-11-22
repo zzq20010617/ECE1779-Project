@@ -4,7 +4,7 @@ import pool from "../db.js";
 const router = express.Router();
 
 // Allowed status values
-const VALID_STATUSES = ["pending", "confirmed", "cancelled"];
+const VALID_STATUSES = ["registered", "cancelled"];
 
 // GET /registrations/count - Retrieve total registration count
 router.get("/count", async (req, res) => {
@@ -176,6 +176,19 @@ router.get("/", async (req, res) => {
 		const result = await pool.query(
 			"SELECT id, user_id, event_id, status, timestamp FROM registrations ORDER BY id ASC"
 		);
+		res.json(result.rows);
+	} catch (err) {
+		console.error("Error fetching registrations:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// POST /registrations/check - Check if exist a registration by user and event id
+router.post("/check", async (req, res) => {
+	try {
+		const { user_id, event_id} = req.body;
+		const result = await pool.query( "SELECT * FROM registrations WHERE user_id = $1 AND event_id = $2",
+			[user_id, event_id]);
 		res.json(result.rows);
 	} catch (err) {
 		console.error("Error fetching registrations:", err);

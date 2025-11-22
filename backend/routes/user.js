@@ -164,7 +164,7 @@ router.get("/", async (req, res) => {
 router.get("/:id/events", async (req, res) => {
   const id = parseInt(req.params.id, 10);
   try {
-    const result = await pool.query("SELECT e.* FROM registrations r JOIN events e ON r.event_id = e.id WHERE r.user_id = $1", [id]);
+    const result = await pool.query("SELECT e.* FROM registrations r JOIN events e ON r.event_id = e.id WHERE r.user_id = $1 and r.status = 'registered'", [id]);
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching users:", err);
