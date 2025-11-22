@@ -160,4 +160,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /users - Retrieve all registered events of a user
+router.get("/:id/events", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  try {
+    const result = await pool.query("SELECT e.* FROM registrations r JOIN events e ON r.event_id = e.id WHERE r.user_id = $1", [id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 export default router;

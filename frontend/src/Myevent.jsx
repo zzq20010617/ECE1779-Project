@@ -12,15 +12,18 @@ import {
   Container,
 } from "@mui/material";
 
-console.log(localStorage.getItem("currentUser"))
+const user = JSON.parse(localStorage.getItem("currentUser"))
+const userId = user.id
 const backend = process.env.REACT_APP_BE_URL
-function EventsPage() {
+console.log(userId)
+
+function MyEventsPage() {
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();
   const [status, setStatus] = useState("Loading...");
 
   useEffect(() => {
-    const eventapi = backend+"/api/events"
+    const eventapi = `${backend}/api/users/${userId}/events`
     fetch(eventapi)
       .then(res => res.json())
       .then(data => {
@@ -41,7 +44,7 @@ function EventsPage() {
         mb={3}
       >
         <Typography variant="h4" fontWeight="bold">
-          All Events
+          Registered Events
         </Typography>
       </Box>
 
@@ -66,4 +69,4 @@ function EventsPage() {
   );
 }
 
-export default EventsPage;
+export default MyEventsPage;
