@@ -10,36 +10,50 @@ import {
   Box,
 } from "@mui/material";
 
-function Login() {
+function Signup() {
   const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const backendBase = `${process.env.REACT_APP_BE_URL}/api/users/login`;
+  const backendBase = `${process.env.REACT_APP_BE_URL}/api/users`;
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     try {
       const res = await fetch(backendBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password_hash: password,
+          role: "student", 
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Sign up failed");
         return;
       }
 
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
-      navigate("/events");
+      // 如果想注册后直接登录，可以把用户存起来再跳转
+      localStorage.setItem("currentUser", JSON.stringify(data));
+      setSuccess("Account created! Redirecting to events...");
+      // 注册成功后直接进 events 页面
+      setTimeout(() => {
+        navigate("/events");
+      }, 800);
     } catch (err) {
+      console.error(err);
       setError("Could not reach backend");
     }
   };
@@ -48,12 +62,22 @@ function Login() {
     <Container maxWidth="xs" sx={{ mt: 10 }}>
       <Paper sx={{ p: 4 }}>
         <Typography variant="h5" align="center" gutterBottom>
-          Login
+          Sign Up
         </Typography>
 
         {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">{success}</Alert>}
 
-        <Box component="form" onSubmit={handleLogin} sx={{ mt: 2 }}>
+        <Box component="form" onSubmit={handleSignup} sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            required
+            margin="normal"
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
           <TextField
             fullWidth
             required
@@ -80,15 +104,15 @@ function Login() {
             type="submit"
             sx={{ mt: 3 }}
           >
-            Login
+            Sign Up
           </Button>
 
           <Button
             fullWidth
             sx={{ mt: 2 }}
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/login")}
           >
-            Don't have an account? Sign Up
+            Already have an account? Login
           </Button>
         </Box>
       </Paper>
@@ -96,4 +120,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Signup;

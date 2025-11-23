@@ -1,21 +1,23 @@
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Container, Typography, Button } from "@mui/material";
-
 
 const backend = `${process.env.REACT_APP_BE_URL}/api`;
 
 function EventDetailsPage() {
-  const [isRegistered, setIsRegistered] = useState(false);
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [event, setEvent] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+
   const user = JSON.parse(localStorage.getItem("currentUser"));
-  const userId = user.id;   
+  const userId = user.id;
 
   useEffect(() => {
     fetch(`${backend}/events/${id}`)
-      .then(res => res.json())
-      .then(data => setEvent(data));
+      .then((res) => res.json())
+      .then((data) => setEvent(data));
   }, [id]);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ function EventDetailsPage() {
 
         const data = await res.json();
 
-        if (data[0].status == 'registered') {
+        if (data[0]?.status === "registered") {
           setIsRegistered(true);
         }
       } catch (err) {
@@ -38,24 +40,25 @@ function EventDetailsPage() {
     };
 
     checkRegistration();
-  });
+  }, [userId, id]);
 
   if (!event) return <p>Loading...</p>;
 
   const handleRegister = async () => {
-
     try {
       const res = await fetch(`${backend}/registrations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id: userId, event_id: id, status: "registered" }),
+        body: JSON.stringify({
+          user_id: userId,
+          event_id: id,
+          status: "registered",
+        }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to register");
-      }
+      if (!res.ok) throw new Error("Failed to register");
 
       setIsRegistered(true);
       alert("Registered successfully!");
@@ -63,7 +66,7 @@ function EventDetailsPage() {
       console.error(err);
       alert("Registration failed!");
     }
-  }
+  };
 
   return (
     <Container sx={{ py: 4 }}>
@@ -79,9 +82,8 @@ function EventDetailsPage() {
         onClick={handleRegister}
         disabled={isRegistered}
       >
-        {isRegistered ? "Cancel" : "Register"}
+        {isRegistered ? "Registered" : "Register"}
       </Button>
-
     </Container>
   );
 }
