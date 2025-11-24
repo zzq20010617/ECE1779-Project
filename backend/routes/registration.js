@@ -4,7 +4,7 @@ import pool from "../db.js";
 const router = express.Router();
 
 // Allowed status values
-const VALID_STATUSES = ["registered", "cancelled"];
+const VALID_STATUSES = ["registered", "canceled"];
 
 // GET /registrations/count - Retrieve total registration count
 router.get("/count", async (req, res) => {
@@ -45,7 +45,13 @@ router.post("/", async (req, res) => {
 			[user_id, event_id]
 		);
 		if (existing.rows.length > 0) {
-			return res.status(400).json({ error: "User already registered for this event" });
+			// Update existing registration to registered
+			await pool.query(
+				"UPDATE registrations SET status = 'registered' WHERE user_id = $1 AND event_id = $2",
+				[user_id, event_id]
+			);
+
+			return res.json({ message: "Updated existing registration" });
 		}
 
 		const result = await pool.query(
@@ -192,6 +198,19 @@ router.post("/check", async (req, res) => {
 		res.json(result.rows);
 	} catch (err) {
 		console.error("Error fetching registrations:", err);
+		res.status(500).json({ error: "Server error" });
+	}
+});
+
+// Get /registrations/capacity/:event_id - Check number of people register for this event
+router.get("/capacity/:event_id", async (req, res) => {
+	try {
+		const event_id = parseInt(req.params.event_id, 10);
+		const result = await pool.query( "SELECT count(*) FROM registrations WHERE event_id = $1 AND status = 'registered'",
+			[event_id]);
+		res.json({ registered: Number(result.rows[0].count) });
+	} catch (err) {
+		console.error("Error getting capacity registrations:", err);
 		res.status(500).json({ error: "Server error" });
 	}
 });

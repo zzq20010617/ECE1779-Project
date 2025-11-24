@@ -5,15 +5,34 @@ import { Container, Typography, Button } from "@mui/material";
 const backend = `${process.env.REACT_APP_BE_URL}/api`;
 
 function EventDetailsPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
 
-  const [event, setEvent] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
+    const [event, setEvent] = useState(null);
+    const [hover, setHover] = useState(false);
+    const [registeredNum, setregisteredNum] = useState(0);
+    const [registrationId, setRegistrationId] = useState(null);
+    const [isRegistered, setIsRegistered] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("currentUser"));
-  const userId = user.id;
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const userId = user.id;
 
+    const checkCapacity = async () => {
+    try {
+      const res = await fetch(`${backend}/registrations/capacity/${id}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (data.registered != null) {
+        setregisteredNum(data.registered);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   useEffect(() => {
     fetch(`${backend}/events/${id}`)
       .then((res) => res.json())
@@ -32,7 +51,8 @@ function EventDetailsPage() {
         const data = await res.json();
 
         if (data[0]?.status === "registered") {
-          setIsRegistered(true);
+          setIsRegistered(true); 
+          setRegistrationId(data[0].id);
         }
       } catch (err) {
         console.error(err);
@@ -41,6 +61,10 @@ function EventDetailsPage() {
 
     checkRegistration();
   }, [userId, id]);
+
+  useEffect(() => {
+    checkCapacity();
+  }, [id]);
 
   if (!event) return <p>Loading...</p>;
 
@@ -61,10 +85,29 @@ function EventDetailsPage() {
       if (!res.ok) throw new Error("Failed to register");
 
       setIsRegistered(true);
+      await checkCapacity();
       alert("Registered successfully!");
     } catch (err) {
       console.error(err);
       alert("Registration failed!");
+    }
+  };
+
+  const handleCancel = async () => {
+    try {
+      const res = await fetch(`${backend}/registrations/${registrationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: 'canceled' }),
+      });
+
+      if (!res.ok) throw new Error("Cancel failed");
+
+      setIsRegistered(false);
+      setRegistrationId(null);
+      await checkCapacity();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -74,15 +117,26 @@ function EventDetailsPage() {
       <Typography>{new Date(event.date).toLocaleString()}</Typography>
       <Typography>{event.location}</Typography>
       <Typography sx={{ mt: 2 }}>{event.description}</Typography>
-
+      <Typography sx={{ mt: 2 }}>Capacity: {registeredNum}/{event.capacity}</Typography>
       <Button
         variant="contained"
-        color="primary"
+          color={
+            isRegistered
+              ? hover
+                ? "error"         // red when hovering
+                : "secondary"     // grey when registered
+              : "primary"         // blue when not registered
+          }
         sx={{ mt: 3 }}
-        onClick={handleRegister}
-        disabled={isRegistered}
+        onMouseEnter={() => isRegistered && setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onClick={isRegistered ? handleCancel : handleRegister}
       >
-        {isRegistered ? "Registered" : "Register"}
+        {isRegistered
+          ? hover
+            ? "Cancel Registration"
+            : "Registered"
+          : "Register"}
       </Button>
     </Container>
   );

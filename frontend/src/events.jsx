@@ -10,12 +10,16 @@ import {
   Divider,
   Typography,
   Container,
+  Paper,
+  InputBase,
+  IconButton
 } from "@mui/material";
-
+import SearchIcon from "@mui/icons-material/Search";
 const backend = process.env.REACT_APP_BE_URL;
 
 function EventsPage() {
   const [events, setEvents] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [status, setStatus] = useState("Loading...");
   const navigate = useNavigate();
 
@@ -24,6 +28,24 @@ function EventsPage() {
   const canManageEvents =
     currentUser &&
     (currentUser.role === "organizer" || currentUser.role === "admin");
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+
+    if (!searchText.trim()) return;
+
+    try {
+      const res = await fetch(
+        `${backend}/api/events/search?query=${encodeURIComponent(searchText)}`
+      );
+      const data = await res.json();
+      setEvents(data);
+      setStatus(data.length === 0 ? "No matching events" : "");
+    } catch (err) {
+      console.error(err);
+      setStatus("Search failed");
+    }
+  };
 
   useEffect(() => {
     const eventapi = backend + "/api/events";
@@ -61,12 +83,33 @@ function EventsPage() {
         )}
       </Box>
 
+      <Paper
+        component="form"
+        onSubmit={handleSearch}
+        sx={{ p: "2px 4px", display: "flex", alignItems: "center", width: 300, mb: 2 }}
+      >
+        <InputBase
+          sx={{ ml: 1, flex: 1 }}
+          placeholder="Search for events"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <IconButton type="submit" sx={{ p: "10px" }} aria-label="search">
+          <SearchIcon />
+        </IconButton>
+      </Paper>
+      
       {status && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {status}
         </Typography>
       )}
-
+      {events.length === 0 ? (
+        <Typography sx={{ mt: 2, textAlign: "center", color: "gray" }}>
+          You don't have any registered events yet.
+        </Typography>
+      ) : (
       <List>
         {events.map((event, index) => (
           <Box key={event.id}>
@@ -103,6 +146,7 @@ function EventsPage() {
           </Box>
         ))}
       </List>
+    )}
     </Container>
   );
 }

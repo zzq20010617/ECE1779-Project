@@ -35,6 +35,32 @@ router.post("/", async (req, res) => {
 	}
 });
 
+
+// GET /events/search?query=keyword
+router.get("/search", async (req, res) => {
+  const { query } = req.query;
+
+  if (!query) {
+    return res.status(400).json({ error: "Missing search query" });
+  }
+  console.log(query);
+  try {
+    const result = await pool.query(
+      `SELECT * FROM events 
+       WHERE title ILIKE $1 
+          OR description ILIKE $1
+       ORDER BY id ASC`,
+      [`%${query}%`]
+    );
+
+	console.log(query)
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error searching events:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // GET /events/:id - Retrieve an event by ID
 router.get("/:id", async (req, res) => {
 	const id = parseInt(req.params.id, 10);
