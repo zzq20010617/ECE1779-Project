@@ -86,17 +86,32 @@ router.get("/:id", async (req, res) => {
 	}
 });
 
-// ✅ NEW: GET /registrations/user/:userId - Retrieve all registrations for a given user
+// GET /registrations/user/:userId - Retrieve all registrations for a given user
 router.get("/user/:userId", async (req, res) => {
 	const userId = parseInt(req.params.userId, 10);
+	const includePast = req.query.includePast !== "false";
+
 	try {
-		const result = await pool.query(
-			"SELECT id, user_id, event_id, status, timestamp FROM registrations WHERE user_id = $1 ORDER BY timestamp DESC",
-			[userId]
-		);
+		let query = `
+      SELECT r.id, r.user_id, r.event_id, r.status, r.timestamp
+      FROM registrations r
+      JOIN events e ON r.event_id = e.id
+      WHERE r.user_id = $1
+    `;
+		const values = [userId];
+
+		if (!includePast) {
+			query += " AND e.date >= NOW()"; // only upcoming events
+		}
+
+		query += " ORDER BY r.timestamp DESC";
+
+		const result = await pool.query(query, values);
+
 		if (result.rows.length === 0) {
 			return res.status(404).json({ error: "No registrations found for this user" });
 		}
+
 		res.status(200).json(result.rows);
 	} catch (err) {
 		console.error("Error fetching user registrations:", err);
@@ -104,7 +119,7 @@ router.get("/user/:userId", async (req, res) => {
 	}
 });
 
-// ✅ NEW: GET /registrations/event/:eventId - Retrieve all registrations for a given event
+// GET /registrations/event/:eventId - Retrieve all registrations for a given event
 router.get("/event/:eventId", async (req, res) => {
 	const eventId = parseInt(req.params.eventId, 10);
 	try {
@@ -178,10 +193,19 @@ router.delete("/:id", async (req, res) => {
 
 // GET /registrations - Retrieve all registrations
 router.get("/", async (req, res) => {
+	const includePast = req.query.includePast !== "false";
 	try {
-		const result = await pool.query(
-			"SELECT id, user_id, event_id, status, timestamp FROM registrations ORDER BY id ASC"
-		);
+		let query = `
+      SELECT r.id, r.user_id, r.event_id, r.status, r.timestamp
+      FROM registrations r
+      JOIN events e ON r.event_id = e.id
+    `;
+		if (!includePast) {
+			query += " WHERE e.date >= NOW()";
+		}
+		query += " ORDER BY r.id ASC";
+
+		const result = await pool.query(query);
 		res.json(result.rows);
 	} catch (err) {
 		console.error("Error fetching registrations:", err);
@@ -189,11 +213,12 @@ router.get("/", async (req, res) => {
 	}
 });
 
+
 // POST /registrations/check - Check if exist a registration by user and event id
 router.post("/check", async (req, res) => {
 	try {
-		const { user_id, event_id} = req.body;
-		const result = await pool.query( "SELECT * FROM registrations WHERE user_id = $1 AND event_id = $2",
+		const { user_id, event_id } = req.body;
+		const result = await pool.query("SELECT * FROM registrations WHERE user_id = $1 AND event_id = $2",
 			[user_id, event_id]);
 		res.json(result.rows);
 	} catch (err) {
@@ -206,7 +231,7 @@ router.post("/check", async (req, res) => {
 router.get("/capacity/:event_id", async (req, res) => {
 	try {
 		const event_id = parseInt(req.params.event_id, 10);
-		const result = await pool.query( "SELECT count(*) FROM registrations WHERE event_id = $1 AND status = 'registered'",
+		const result = await pool.query("SELECT count(*) FROM registrations WHERE event_id = $1 AND status = 'registered'",
 			[event_id]);
 		res.json({ registered: Number(result.rows[0].count) });
 	} catch (err) {
