@@ -87,7 +87,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // GET /registrations/user/:userId - Retrieve all registrations for a given user
-router.post("/user/:userId", async (req, res) => {
+router.get("/user/:userId", async (req, res) => {
 	const userId = parseInt(req.params.userId, 10);
 	const includePast = req.query.includePast !== "false";
 
