@@ -1,5 +1,6 @@
 import express from "express";
 import pool from "../db.js";
+import transporter from "../mailer.js";
 
 const router = express.Router();
 
@@ -56,10 +57,27 @@ router.post("/", async (req, res) => {
 
 		const result = await pool.query(
 			`INSERT INTO registrations (user_id, event_id, status)
-       VALUES ($1, $2, $3)
-       RETURNING id, user_id, event_id, status, timestamp`,
+             VALUES ($1, $2, $3)
+             RETURNING id, user_id, event_id, status, timestamp`,
 			[user_id, event_id, status]
 		);
+
+		const user = await pool.query("SELECT email, name FROM users WHERE id = $1", [user_id]);
+		const event = await pool.query("SELECT title, date FROM events WHERE id = $1", [event_id]);
+
+		const sender = {
+			address: "university.event@ece1779.com",
+			name: "ECE1779 University Event Management System",
+		};
+
+		const mailOptions = {
+			from: sender,
+			to: user.rows[0].email,
+			subject: `Registration confirmed for ${event.rows[0].title}`,
+			text: `Hi ${user.rows[0].name},\n\nYou are successfully registered for "${event.rows[0].title}" on ${event.rows[0].date}.\n\nSee you there!`,
+		};
+
+		await transporter.sendMail(mailOptions);
 
 		res.status(201).json(result.rows[0]);
 	} catch (err) {
@@ -169,7 +187,27 @@ router.put("/:id", async (req, res) => {
 		if (result.rows.length === 0) {
 			return res.status(404).json({ error: "Registration not found" });
 		}
-		res.status(200).json(result.rows[0]);
+
+		const updated = result.rows[0];
+
+		const user = await pool.query("SELECT email, name FROM users WHERE id = $1", [updated.user_id]);
+		const event = await pool.query("SELECT title, date FROM events WHERE id = $1", [updated.event_id]);
+
+		const sender = {
+			address: "university.event@ece1779.com",
+			name: "ECE1779 University Event Management System",
+		};
+
+		const mailOptions = {
+			from: sender,
+			to: user.rows[0].email,
+			subject: `Your registration for ${event.rows[0].title} was updated`,
+			text: `Hi ${user.rows[0].name},\n\nYour registration status for "${event.rows[0].title}" on ${event.rows[0].date} has been updated to "${updated.status}".\n\nThank you!`,
+		};
+
+		await transporter.sendMail(mailOptions);
+
+		res.status(200).json(updated);
 	} catch (err) {
 		console.error("Error updating registration:", err);
 		res.status(500).json({ error: "Server error" });
@@ -180,11 +218,34 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
 	const id = parseInt(req.params.id, 10);
 	try {
-		const result = await pool.query("DELETE FROM registrations WHERE id = $1 RETURNING id", [id]);
+		const result = await pool.query(
+			"DELETE FROM registrations WHERE id = $1 RETURNING id, user_id, event_id",
+			[id]
+		);
 		if (result.rowCount === 0) {
 			return res.status(404).json({ error: "Registration not found" });
 		}
-		res.status(200).json({ message: "Registration deleted", id: result.rows[0].id });
+
+		const deleted = result.rows[0];
+
+		const user = await pool.query("SELECT email, name FROM users WHERE id = $1", [deleted.user_id]);
+		const event = await pool.query("SELECT title, date FROM events WHERE id = $1", [deleted.event_id]);
+
+		const sender = {
+			address: "university.event@ece1779.com",
+			name: "ECE1779 University Event Management System",
+		};
+
+		const mailOptions = {
+			from: sender,
+			to: user.rows[0].email,
+			subject: `Your registration for ${event.rows[0].title} was deleted`,
+			text: `Hi ${user.rows[0].name},\n\nYour registration for "${event.rows[0].title}" on ${event.rows[0].date} has been deleted.\n\nIf this was a mistake, please register again.\n\nThank you!`,
+		};
+
+		await transporter.sendMail(mailOptions);
+
+		res.status(200).json({ message: "Registration deleted", id: deleted.id });
 	} catch (err) {
 		console.error("Error deleting registration:", err);
 		res.status(500).json({ error: "Server error" });
