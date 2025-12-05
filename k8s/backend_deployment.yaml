@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ming031121/ece1779-backend:v1   
+          image: ming031121/ece1779-backend:v3
           ports:
             - containerPort: 3000            
           env:
@@ -27,23 +27,35 @@ spec:
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: app-secret
                   key: DB_PORT
 
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: app-secret
                   key: DB_NAME
 
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: app-secret
                   key: DB_USER
 
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: app-secret
                   key: DB_PASSWORD
+
+            - name: MAILTRAP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MAILTRAP_USER
+
+            - name: MAILTRAP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: MAILTRAP_PASS
