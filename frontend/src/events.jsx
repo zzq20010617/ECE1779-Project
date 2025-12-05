@@ -15,15 +15,26 @@ import {
   IconButton
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import {jwtDecode} from "jwt-decode";
+
 const backend = process.env.REACT_APP_BE_URL;
+const token = localStorage.getItem("token");
 
 function EventsPage() {
   const [events, setEvents] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [status, setStatus] = useState("Loading...");
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setCurrentUser(jwtDecode(token));
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
 
   const canManageEvents =
     currentUser &&

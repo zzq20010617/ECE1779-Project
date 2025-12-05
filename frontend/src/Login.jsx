@@ -37,7 +37,7 @@ function Login() {
         return;
       }
 
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
       navigate("/events");
     } catch (err) {
       setError("Could not reach backend");

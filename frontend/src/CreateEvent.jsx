@@ -10,6 +10,7 @@ import {
   MenuItem,
   Box,
 } from "@mui/material";
+import {jwtDecode} from "jwt-decode";
 
 function CreateEvent() {
   const navigate = useNavigate();
@@ -24,7 +25,11 @@ function CreateEvent() {
 
   const backendBase = `${process.env.REACT_APP_BE_URL}/api/events`;
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const token = localStorage.getItem("token");
+  let currentUser = null;
+  if (token) {
+    currentUser = jwtDecode(token);
+  }
   const organizerId = currentUser?.id;
 
   const handleSubmit = async (e) => {
@@ -40,7 +45,10 @@ function CreateEvent() {
     try {
       const res = await fetch(backendBase, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+         },
         body: JSON.stringify({
           organizer_id: organizerId,
           title,

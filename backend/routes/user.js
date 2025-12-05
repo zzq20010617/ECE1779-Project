@@ -1,7 +1,9 @@
 import express from "express";
 import pool from "../db.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // POST /users/login - Authenticate user
 router.post("/login", async (req, res) => {
@@ -29,8 +31,20 @@ router.post("/login", async (req, res) => {
 
     delete user.password_hash;
 
+    console.log("JWT_SECRET when signing =", JWT_SECRET);
+    const token = jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        role: user.role, 
+      },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     return res.status(200).json({
       message: "Login successful",
+      token,
       user,
     });
   } catch (err) {
@@ -72,7 +86,20 @@ router.post("/", async (req, res) => {
       "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role",
       [name, email, password_hash, role]
     );
-    res.status(201).json(result.rows[0]);
+    const user = result.rows[0]
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role, 
+      },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res.status(200).json({
+      token,
+      user,
+    });
   } catch (err) {
     console.error("Error creating user:", err);
     res.status(500).json({ error: "Server error" });

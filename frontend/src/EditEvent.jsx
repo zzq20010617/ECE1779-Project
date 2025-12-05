@@ -12,6 +12,9 @@ import {
 } from "@mui/material";
 
 function EditEvent() {
+
+  const token = localStorage.getItem("token");
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -33,7 +36,10 @@ function EditEvent() {
     try {
       const res = await fetch(backendBase, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+         },
         body: JSON.stringify(eventData),
       });
 

@@ -45,10 +45,10 @@ function Signup() {
         return;
       }
 
-      // 如果想注册后直接登录，可以把用户存起来再跳转
-      localStorage.setItem("currentUser", JSON.stringify(data));
+      
+      localStorage.setItem("token", data.token);
       setSuccess("Account created! Redirecting to events...");
-      // 注册成功后直接进 events 页面
+      
       setTimeout(() => {
         navigate("/events");
       }, 800);

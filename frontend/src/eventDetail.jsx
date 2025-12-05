@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Container, Typography, Button } from "@mui/material";
+import {jwtDecode} from "jwt-decode";
 
 const backend = `${process.env.REACT_APP_BE_URL}/api`;
+const token = localStorage.getItem("token");
 
 function EventDetailsPage() {
     const { id } = useParams();
@@ -14,8 +16,11 @@ function EventDetailsPage() {
     const [registrationId, setRegistrationId] = useState(null);
     const [isRegistered, setIsRegistered] = useState(false);
 
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    const userId = user.id;
+    let currentUser = null;
+    if (token) {
+      currentUser = jwtDecode(token);
+    }
+    const userId = currentUser?.id;;
 
     const checkCapacity = async () => {
     try {
@@ -74,6 +79,7 @@ function EventDetailsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           user_id: userId,
@@ -83,7 +89,7 @@ function EventDetailsPage() {
       });
 
       if (!res.ok) throw new Error("Failed to register");
-
+      
       setIsRegistered(true);
       await checkCapacity();
       alert("Registered successfully!");
@@ -95,6 +101,7 @@ function EventDetailsPage() {
 
   const handleCancel = async () => {
     try {
+      console.log(registrationId);
       const res = await fetch(`${backend}/registrations/${registrationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -104,7 +111,6 @@ function EventDetailsPage() {
       if (!res.ok) throw new Error("Cancel failed");
 
       setIsRegistered(false);
-      setRegistrationId(null);
       await checkCapacity();
     } catch (err) {
       console.error(err);

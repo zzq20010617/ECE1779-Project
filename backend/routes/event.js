@@ -1,5 +1,6 @@
 import express from "express";
 import pool from "../db.js";
+import { authenticate, authorize } from "../authMiddleware.js";
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.get("/count", async (req, res) => {
 });
 
 // POST /events - Create a new event
-router.post("/", async (req, res) => {
+router.post("/", authenticate, authorize("admin", "organizer"), async (req, res) => {
 	const { organizer_id, title, status, description, location, date, capacity } = req.body;
 	try {
 		if (!organizer_id || !title || !status || !location || !date || !capacity) {
@@ -77,7 +78,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /events/:id - Update an event by ID (partial update)
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticate, authorize("admin", "organizer"), async (req, res) => {
 	const id = parseInt(req.params.id, 10);
 	const fields = ["organizer_id", "title", "status", "description", "location", "date", "capacity"];
 	const updates = [];

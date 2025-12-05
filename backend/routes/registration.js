@@ -1,6 +1,7 @@
 import express from "express";
 import pool from "../db.js";
 import transporter from "../mailer.js";
+import { authenticate, authorize } from "../authMiddleware.js";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get("/count", async (req, res) => {
 });
 
 // POST /registrations - Create a new registration
-router.post("/", async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
 	const { user_id, event_id, status } = req.body;
 
 	try {
@@ -47,12 +48,12 @@ router.post("/", async (req, res) => {
 		);
 		if (existing.rows.length > 0) {
 			// Update existing registration to registered
-			await pool.query(
+			const result = await pool.query(
 				"UPDATE registrations SET status = 'registered' WHERE user_id = $1 AND event_id = $2",
 				[user_id, event_id]
 			);
 
-			return res.json({ message: "Updated existing registration" });
+			return res.status(201).json(result.rows[0]);
 		}
 
 		const result = await pool.query(

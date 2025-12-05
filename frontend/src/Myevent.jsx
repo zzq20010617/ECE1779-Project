@@ -11,13 +11,19 @@ import {
   Typography,
   Container,
 } from "@mui/material";
+import {jwtDecode} from "jwt-decode";
 
-const user = JSON.parse(localStorage.getItem("currentUser"))
-const userId = user.id
 const backend = process.env.REACT_APP_BE_URL
-console.log(userId)
 
 function MyEventsPage() {
+
+  const token = localStorage.getItem("token");
+  let currentUser = null;
+  if (token) {
+    currentUser = jwtDecode(token);
+  }
+  const userId = currentUser?.id;
+  
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();
   const [status, setStatus] = useState("Loading...");

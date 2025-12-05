@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 
 function LoginCheck({ children }) {
-  const token = localStorage.getItem("currentUser");
+  const token = localStorage.getItem("token");
 
   if (!token) {
     return <Navigate to="/" replace />;
