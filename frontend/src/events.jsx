@@ -57,8 +57,14 @@ function EventsPage() {
       setStatus("Search failed");
     }
   };
-
+  
   useEffect(() => {
+    if (searchText.trim() === "") {
+      fetchAllEvents();
+    }
+  }, [searchText]);
+
+  const fetchAllEvents = () => {
     const eventapi = backend + "/api/events";
     fetch(eventapi)
       .then((res) => res.json())
@@ -70,6 +76,10 @@ function EventsPage() {
         console.error(err);
         setStatus("Failed to fetch events");
       });
+  };
+
+  useEffect(() => {
+    fetchAllEvents();
   }, []);
 
   return (
