@@ -133,7 +133,7 @@ Before starting, ensure the **Docker & Docker Compose** are installed
 Create a .env file in `backend/` and copy the example backend environment file from `backend/.env`, to enable email function you need to replance MAILTRAP_USER and MAILTRAP_PASS by your own credentials, you can create an account from *https://mailtrap.io/*.
 #### 2.2 Frontend Environment Variables
 
-Create a .env file in `backend/` and copy the example frontend environment file from `frontend/.env`
+Create a .env file in `frontend/` and copy the example frontend environment file from `frontend/.env`
 
 ### 3. Running the App with Docker Compose
 
