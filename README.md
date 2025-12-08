@@ -30,6 +30,7 @@ Finally, the project sought to build a maintainable and robust system architectu
   - Node.js is used to implement all the backend APIs, including creating, reading, updating, deleting a user/event/registration, searching for a registration with specific criteria, filtering the events, etc.
   - Three databases are used to store three tables that are needed for our university event management application, user, event, and registration.
 - Frontend
+  - React.js is used to build the frontend and some components come from Matrial UI package.
 - Containerization
   - Docker is used to containerize our university event management application.
   - Docker compose is used for our local multi-container setup.
