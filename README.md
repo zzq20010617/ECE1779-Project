@@ -176,7 +176,62 @@ When there is an update but you want to keep the current data in dataabase, run 
 If you don't want to keep current database and create again from `init.sql`, run ``docker compose down -v`` to remove volume and run ``docker compose up --build -d`` again.
 
 ## Deployment Information (if applicable)
+our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
+
+- **Frontend (React.js Application)**
+  - Deployed as a Kubernetes Deployment.
+  - Exposed via a `LoadBalancer` Service named `frontend-service`.
+  - External IP: `209.38.2.221`
+  - Live URL: `http://209.38.2.221`
+
+- **Backend API (Node.js / Express)**
+  - Deployed as a Kubernetes Deployment.
+  - Exposed via a `LoadBalancer` Service named `api-service`.
+  - External IP: `209.38.12.226`
+  - Base URL: `http://209.38.12.226:3000` (the frontend uses this address to reach the API).
+
+- **Database (PostgreSQL)**
+  - Runs inside the cluster and is exposed internally via a `ClusterIP` Service (e.g., `postgres-service` on port 5432).
+  - Uses a **DigitalOcean Volume** as persistent storage so that data survives pod restarts and redeployments.
+  - The initial schema and sample data (users, events, registrations) come from `init.sql`, which is executed when the database is first initialized.
+
+- **Configuration and Secrets**
+  - Sensitive configuration values, including database credentials, JWT secret keys, and Mailtrap credentials (`MAILTRAP_USER`, `MAILTRAP_PASS`), are stored in **Kubernetes Secrets** and injected as environment variables into the backend container.
+  - Non-sensitive parameters (such as API base URLs used by the frontend) are managed through `.env` files and ConfigMaps.
+
+- **Deployment Workflow**
+  - Docker images for the frontend and backend are built from the project repository and pushed to a container registry.
+  - Kubernetes manifests (`Deployment`, `Service`, `Secret`, etc.) are applied using `kubectl apply -f`.
+  - Rolling updates are used so that new versions of the application can be deployed with minimal downtime.
+
+- **Monitoring and Scaling**
+  - **DigitalOcean Monitoring** is used to observe CPU, memory, and disk usage for the cluster.
+  - Alerts are configured to notify the team when resource usage exceeds thresholds, which typically corresponds to spikes in event views and registrations.
+  - DigitalOcean Kubernetes auto-scaling and manual adjustment of replica counts are used to keep the application responsive during peak load.
+
 
 ## Individual Contributions
 
 ## Lessons Learned and Concluding Remarks
+This project gave our team a complete, end-to-end experience in designing, implementing, and deploying a cloud-native web application.
+
+From a **technical perspective**, we learned:
+
+- How to design a **full-stack architecture** that connects a React frontend, a Node.js/Express backend, and a PostgreSQL database in a clean and maintainable way.
+- How to use **Docker and Docker Compose** to create a reproducible local development environment with multiple containers, volumes, and networks.
+- How to deploy a **stateful application on Kubernetes**, including:
+  - Using Deployments and Services to manage pods and external access.
+  - Managing persistent storage via DigitalOcean Volumes for PostgreSQL.
+  - Handling secrets and configuration securely using Kubernetes Secrets and environment variables.
+- How to integrate **authentication, authorization (RBAC), and email notifications** in a production-like environment using JWT and Mailtrap.
+- How to leverage **DigitalOcean Monitoring and alerts** to understand performance, detect bottlenecks, and reason about scaling behavior during simulated peak loads.
+
+From a **team and project management perspective**, we learned:
+
+- The importance of agreeing on **API contracts** early so that frontend and backend can be developed in parallel with fewer integration issues.
+- The value of keeping **infrastructure as code** (Dockerfiles, Compose files, Kubernetes manifests) in the repository so that everyone can reproduce the same environment and deployment state.
+- That debugging a distributed system (frontend + backend + database + Kubernetes + cloud provider) requires systematic use of logs, metrics, and step-by-step isolation of components, rather than only relying on local testing.
+- How dividing ownership (backend, frontend, infrastructure) while still sharing high-level understanding helps the whole system remain maintainable and easier to debug.
+
+Overall, the **EventHub** system meets the goals we originally set in the Motivation and Objectives sections: it offers a centralized platform for managing university events and demonstrates the use of cloud-native technologies in a realistic setting. The project strengthened our understanding of containerization, orchestration, persistent storage, monitoring, and full-stack web development, and gave us experience that is directly transferable to real-world cloud applications.
+
