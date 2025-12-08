@@ -175,7 +175,7 @@ When there is an update but you want to keep the current data in dataabase, run 
 
 If you don't want to keep current database and create again from `init.sql`, run ``docker compose down -v`` to remove volume and run ``docker compose up --build -d`` again.
 
-## Deployment Information (if applicable)
+## Deployment Information
 our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
 
 - **Frontend (React.js Application)**
