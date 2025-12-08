@@ -213,7 +213,7 @@ our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
 ## Individual Contributions
 - Ziqi Zhu:    
 - Chang Sun: 
-- Zhang Yue:I implemented the frontend sign up and create Account page and integrated it with the backend API. I also contributed to backend API development, helped maintain the Docker-based development setup, and supported deployment testing with PostgreSQL and Kubernetes.
+- Zhang Yue: I implemented the frontend sign up and create Account page and integrated it with the backend API. I also contributed to backend API development, helped maintain the Docker-based development setup, and supported deployment testing with PostgreSQL and Kubernetes.
 - Shiming Zhang:
 ## Lessons Learned and Concluding Remarks
 This project gave our team a complete, end-to-end experience in designing, implementing, and deploying a cloud-native web application.
