@@ -77,55 +77,100 @@ router.get("/:id", async (req, res) => {
 	}
 });
 
-// PUT /events/:id - Update an event by ID (partial update)
-router.put("/:id", authenticate, authorize("admin", "organizer"), async (req, res) => {
-	const id = parseInt(req.params.id, 10);
-	const fields = ["organizer_id", "title", "status", "description", "location", "date", "capacity"];
-	const updates = [];
-	const values = [];
+// PUT /events/:id - Update an event by ID (only creator can update)
+router.put("/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { organizer_id } = req.body; 
 
-	fields.forEach((field) => {
-		if (req.body[field] !== undefined) {
-			updates.push(`${field} = $${values.length + 1}`);
-			values.push(req.body[field]);
-		}
-	});
+  if (!organizer_id) {
+    return res.status(400).json({ error: "Missing organizer_id in request body" });
+  }
 
-	if (updates.length === 0) {
-		return res.status(400).json({ error: "No fields to update" });
-	}
+  try {
+    const existing = await pool.query(
+      "SELECT organizer_id FROM events WHERE id = $1",
+      [id]
+    );
 
-	values.push(id);
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
 
-	try {
-		const result = await pool.query(
-			`UPDATE events SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
-			values
-		);
-		if (result.rows.length === 0) {
-			return res.status(404).json({ error: "Event not found" });
-		}
-		res.status(200).json(result.rows[0]);
-	} catch (err) {
-		console.error("Error updating event:", err);
-		res.status(500).json({ error: "Server error" });
-	}
+    const creatorId = existing.rows[0].organizer_id;
+
+    if (creatorId !== organizer_id) {
+      return res
+        .status(403)
+        .json({ error: "Only the creator of this event can update it" });
+    }
+
+    const fields = ["title", "status", "description", "location", "date", "capacity"];
+    const updates = [];
+    const values = [];
+
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updates.push(`${field} = $${values.length + 1}`);
+        values.push(req.body[field]);
+      }
+    });
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    values.push(id); 
+
+    const result = await pool.query(
+      `UPDATE events SET ${updates.join(", ")} WHERE id = $${
+        values.length
+      } RETURNING *`,
+      values
+    );
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error updating event:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// DELETE /events/:id - Delete an event by ID
+
+// DELETE /events/:id - Delete an event by ID (only creator can delete)
 router.delete("/:id", async (req, res) => {
-	const id = parseInt(req.params.id, 10);
-	try {
-		const result = await pool.query("DELETE FROM events WHERE id = $1 RETURNING id", [id]);
-		if (result.rowCount === 0) {
-			return res.status(404).json({ error: "Event not found" });
-		}
-		res.status(200).json({ message: "Event deleted", id: result.rows[0].id });
-	} catch (err) {
-		console.error("Error deleting event:", err);
-		res.status(500).json({ error: "Server error" });
-	}
+  const id = parseInt(req.params.id, 10);
+  const { organizer_id } = req.body;
+
+  if (!organizer_id) {
+    return res.status(400).json({ error: "Missing organizer_id in request body" });
+  }
+
+  try {
+    const existing = await pool.query(
+      "SELECT organizer_id FROM events WHERE id = $1",
+      [id]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const creatorId = existing.rows[0].organizer_id;
+
+    if (creatorId !== organizer_id) {
+      return res
+        .status(403)
+        .json({ error: "Only the creator of this event can delete it" });
+    }
+
+    await pool.query("DELETE FROM events WHERE id = $1", [id]);
+    res.status(200).json({ message: "Event deleted", id });
+  } catch (err) {
+    console.error("Error deleting event:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
+
 
 // GET /events - Retrieve all events
 router.get("/", async (req, res) => {
