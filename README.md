@@ -112,6 +112,7 @@ Finally, the project sought to build a maintainable and robust system architectu
   - Implementation:
     - We use Mailtrap to demonstrate this functionality. It can also help the event organizers to send out emails to all the students to help promote their events and send out any newsletters.
     - With Mailtrap Sandbox, we are able to safely demonstrate and debug this feature without spamming any real-world email inboxes. Meanwhile, Mailtrap Sandbox also shows that our email notification feature is working as expected.
+    - Mailtrap .env user and password **credentials sent to TA**.
 
 - Auto-Scaling and High Availability
   - Functionality:
