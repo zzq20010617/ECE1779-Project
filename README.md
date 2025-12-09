@@ -214,7 +214,7 @@ our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
 - Ziqi Zhu: Create database initialize schema, Implemented event landing page and event detail page on frontend, implemented some backend apis and JWT authentication. 
 - Chang Sun: Implemented most of the backend APIs in Node.js. Collected needs from frontend and implemented additional backend features accordingly. Implemented email notification advanced feature.
 - Zhang Yue: I implemented the frontend sign up and create Account page and integrated it with the backend API. I also contributed to backend API development, helped maintain the Docker-based development setup, and supported deployment testing with PostgreSQL and Kubernetes.
-- Shiming Zhang:
+- Shiming Zhang: Designed the overall cloud deployment architecture and implemented the Kubernetes manifests for frontend, backend, and PostgreSQL. Configured DigitalOcean Volumes and Kubernetes Secrets, debugged deployment and service connectivity issues, and set up monitoring and alerts on DigitalOcean.
 
 ## Lessons Learned and Concluding Remarks
 This project gave our team a complete, end-to-end experience in designing, implementing, and deploying a cloud-native web application.
