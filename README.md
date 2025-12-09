@@ -123,7 +123,7 @@ Finally, the project sought to build a maintainable and robust system architectu
     - We also use DigitalOcean to monitor the CPU, memory, and disk usage and provide alerts during peak view and registration periods.
     - We take advantage of DigitalOcean Kubernetes auto-scaling feature to make sure our application is still available while large number of requests are hitting.
 
-Our implementation aligns closely with the course project requirements. We use Docker Compose to containerize and manage our Node.js backend, PostgreSQL database, and React.js frontend in a multi-container setup. PostgreSQL serves as our persistent data store, and data durability is ensured through DigitalOcean Volumes, allowing state to survive container restarts or redeployments.
+Our implementation aligns closely with the course project requirements. We use Docker Compose to containerize and manage our Node.js backend, PostgreSQL database, and React.js frontend in a multi-container setup. PostgreSQL serves as our persistent data store, and data durability is ensured through DigitalOcean Volumes, allowing state to survive even if container restarts or re-deploys.
 
 For orchestration, we use Kubernetes to deploy the application to a cloud-managed cluster on DigitalOcean, taking advantage of its scalability, fault tolerance, and service management features. We utilize the DigitalOcean monitoring dashboard to observe key metrics such as CPU, memory, and disk usage, and configure basic alerts to ensure operational stability.
 
@@ -212,9 +212,10 @@ our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
 
 ## Individual Contributions
 - Ziqi Zhu: Create database initialize schema, Implemented event landing page and event detail page on frontend, implemented some backend apis and JWT authentication. 
-- Chang Sun: 
+- Chang Sun: Implemented most of the backend APIs in Node.js. Collected needs from frontend and implemented additional backend features accordingly. Implemented email notification advanced feature.
 - Zhang Yue: I implemented the frontend sign up and create Account page and integrated it with the backend API. I also contributed to backend API development, helped maintain the Docker-based development setup, and supported deployment testing with PostgreSQL and Kubernetes.
 - Shiming Zhang:
+
 ## Lessons Learned and Concluding Remarks
 This project gave our team a complete, end-to-end experience in designing, implementing, and deploying a cloud-native web application.
 
