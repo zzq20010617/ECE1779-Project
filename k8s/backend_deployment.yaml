@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ming031121/ece1779-backend:v3
+          image: ming031121/ece1779-backend:v4
           ports:
             - containerPort: 3000            
           env:
@@ -59,3 +59,9 @@ spec:
                 secretKeyRef:
                   name: app-secret
                   key: MAILTRAP_PASS
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: JWT_SECRET
