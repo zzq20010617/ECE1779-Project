@@ -211,7 +211,7 @@ our application is deployed on a **DigitalOcean Kubernetes (DOKS)** cluster.
 
 
 ## Individual Contributions
-- Ziqi Zhu:    
+- Ziqi Zhu: Implemented event landing page and event detail page on frontend, implemented some backend apis and JWT authentication. 
 - Chang Sun: 
 - Zhang Yue: I implemented the frontend sign up and create Account page and integrated it with the backend API. I also contributed to backend API development, helped maintain the Docker-based development setup, and supported deployment testing with PostgreSQL and Kubernetes.
 - Shiming Zhang:
