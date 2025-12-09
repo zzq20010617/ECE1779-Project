@@ -241,4 +241,4 @@ From a **team and project management perspective**, we learned:
 Overall, the **EventHub** system meets the goals we originally set in the Motivation and Objectives sections: it offers a centralized platform for managing university events and demonstrates the use of cloud-native technologies in a realistic setting. The project strengthened our understanding of containerization, orchestration, persistent storage, monitoring, and full-stack web development, and gave us experience that is directly transferable to real-world cloud applications.
 
 ## Video Demo
-URL:
+URL: https://drive.google.com/file/d/1eV1VXVHxHWLsYfDfuheeU6VB7wYMgAAp/view?usp=sharing
