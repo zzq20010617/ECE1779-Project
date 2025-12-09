@@ -44,26 +44,31 @@ function EventDetailsPage() {
       .then((data) => setEvent(data));
   }, [id]);
 
-  useEffect(() => {
-    const checkRegistration = async () => {
-      try {
-        const res = await fetch(`${backend}/registrations/check`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId, event_id: id }),
-        });
+  const checkRegistration = async () => {
+    try {
+      const res = await fetch(`${backend}/registrations/check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, event_id: id }),
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data[0]?.status === "registered") {
-          setIsRegistered(true); 
-          setRegistrationId(data[0].id);
-        }
-      } catch (err) {
-        console.error(err);
+      if (data[0]?.status === "registered") {
+        setIsRegistered(true);
+        setRegistrationId(data[0].id);
+      } else {
+        setIsRegistered(false);
+        setRegistrationId(null);
       }
-    };
 
+      return data; // optional: return result to caller
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
     checkRegistration();
   }, [userId, id]);
 
@@ -90,8 +95,8 @@ function EventDetailsPage() {
 
       if (!res.ok) throw new Error("Failed to register");
       
-      setIsRegistered(true);
       await checkCapacity();
+      await checkRegistration();
       alert("Registered successfully!");
     } catch (err) {
       console.error(err);
